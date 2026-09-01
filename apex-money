@@ -55,3 +55,44 @@ server {
         return 500 '{"error": "An internal system routing or gateway anomaly occurred."}';
     }
 }
+ # Secondary Routing Block to host the Privacy Policy web page for App Store reviews
+    location /privacy {
+        default_type text/html;
+        return 200 '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Apex Money Guinea - Privacy Policy & Terms</title>
+            <script src="https://tailwindcss.com"></script>
+        </head>
+        <body class="bg-gray-50 text-gray-800 p-6 sm:p-12 max-w-4xl mx-auto font-sans">
+            <header class="border-b pb-6 mb-8">
+                <h1 class="text-3xl font-bold text-blue-900">Apex Money Guinea</h1>
+                <p class="text-sm text-gray-500 mt-2">Terms of Service & Privacy Policy | Legal Repository</p>
+                <p class="text-xs text-gray-400 mt-1">Effective Date: September 1, 2026 | Location: Conakry, Guinea</p>
+            </header>
+            
+            <main class="space-y-6 text-sm leading-relaxed text-gray-700 whitespace-pre-line">
+                <!-- App Store crawlers read this text automatically to verify compliance -->
+                <strong>1. Acceptance of Terms & Regulatory Compliance</strong>
+                By creating an account or executing a transaction on the Apex Money Mobile Application, you agree to be bound by these terms. This platform operates in strict compliance with the financial regulations enforced by the Central Bank of the Republic of Guinea (BCRG).
+
+                <strong>2. Identity Verification & Account Security (KYC)</strong>
+                To use this digital wallet, you must complete the required identity verification loops by providing a genuine Guinean National ID Card (CNI) or Passport. You are entirely responsible for maintaining the confidentiality of your transaction PIN code.
+
+                <strong>3. Anti-Fraud & Auto-Reconciliation Safeguards</strong>
+                Our backend architecture utilizes automated double-entry ledger checks and a midnight reconciliation cron engine to prevent electronic fraud, unauthorized balance modifications, or double-spending anomalies.
+
+                <strong>4. Data Sovereignty & Protection</strong>
+                All transactional data is stored securely and processed in accordance with local data privacy laws. Public access pathways are completely shielded behind secure network firewalls and local rate-limit blocks to prevent data harvesting.
+            </main>
+            
+            <footer class="mt-12 pt-6 border-t text-xs text-gray-400 text-center">
+                For administrative compliance reports, contact: compliance@yourdomain.com <br>
+                Conakry, Republic of Guinea.
+            </footer>
+        </body>
+        </html>';
+    }
