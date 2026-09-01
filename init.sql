@@ -50,3 +50,14 @@ CREATE TABLE phone_verifications (
 
 -- Index optimization to enable lightning-fast cron data purging later
 CREATE INDEX idx_otp_expiry ON phone_verifications(expires_at);
+-- Merchant Business Profile Directory Schema
+CREATE TABLE merchants (
+    merchant_id VARCHAR(50) PRIMARY KEY REFERENCES accounts(id),
+    business_name VARCHAR(100) NOT NULL,
+    store_location VARCHAR(150),
+    qr_payload_string TEXT UNIQUE NOT NULL -- Holds the immutable string signature read by the app camera
+);
+
+-- Seed a mock merchant business profile operating in Conakry
+INSERT INTO merchants (merchant_id, business_name, store_location, qr_payload_string) VALUES
+('OWNER_MAIN', 'Apex Telecom & Supermarket', 'Avenue de la République, Kaloum', 'apex-money:merchant:OWNER_MAIN');
