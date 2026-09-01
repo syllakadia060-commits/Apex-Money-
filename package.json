@@ -1,0 +1,13 @@
+{
+  "name": "apex-money-core-ledger",
+  "version": "1.1.0",
+  "description": "Multi-role mobile money infrastructure architecture modeling Owner, Agent, and User scopes",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "uuid": "^10.0.0"
+  }
+}
