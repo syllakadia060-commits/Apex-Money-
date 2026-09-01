@@ -61,3 +61,12 @@ CREATE TABLE merchants (
 -- Seed a mock merchant business profile operating in Conakry
 INSERT INTO merchants (merchant_id, business_name, store_location, qr_payload_string) VALUES
 ('OWNER_MAIN', 'Apex Telecom & Supermarket', 'Avenue de la République, Kaloum', 'apex-money:merchant:OWNER_MAIN');
+ -- Automated Nightly Financial Audit Log Schema
+CREATE TABLE daily_reconciliation_logs (
+    audit_date DATE PRIMARY KEY DEFAULT CURRENT_DATE,
+    total_system_float NUMERIC(15, 2) NOT NULL,
+    total_platform_fees NUMERIC(15, 2) NOT NULL,
+    unreconciled_discrepancy NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    status VARCHAR(20) NOT NULL, -- 'BALANCED' or 'DISCREPANCY_ALERT'
+    checked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
