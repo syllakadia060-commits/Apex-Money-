@@ -39,3 +39,14 @@ INSERT INTO accounts (id, phone_number, account_holder_name, role, balance_gnf) 
 ('OWNER_MAIN', '+224620000000', 'Apex Money Corporate Treasury', 'OWNER', 500000000.00), -- 500 Million GNF
 ('AGENT_01',   '+224629999999', 'Kaloum Kiosk Terminal',        'AGENT',  10000000.00), -- 10 Million GNF Float
 ('USER_01',    '+224621111111', 'Mamady Camara',                'USER',     250000.00); -- 250,000 GNF
+ -- Temporary tracking verification schema for user security loops
+CREATE TABLE phone_verifications (
+    phone_number VARCHAR(15) PRIMARY KEY,
+    otp_code VARCHAR(6) NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_verified BOOLEAN DEFAULT FALSE,
+    attempts INT DEFAULT 0
+);
+
+-- Index optimization to enable lightning-fast cron data purging later
+CREATE INDEX idx_otp_expiry ON phone_verifications(expires_at);
