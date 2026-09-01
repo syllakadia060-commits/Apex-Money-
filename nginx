@@ -1,0 +1,57 @@
+ # Rate Limiting Rule: Limits incoming API requests per user IP to 10 requests per second.
+# This prevents malicious scripts from brute-forcing transactions or overwhelming the database.
+limit_req_zone $binary_remote_addr zone=api_limit_zone:10m rate=10r/s;
+
+server {
+    listen 80;
+    listen [::]:80;
+    
+    # Replace with your actual domain or production IP address
+    server_name ://yourdomain.com 127.0.0.1;
+
+    # Core Security Headers
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none';" always;
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+
+    # Operational Boundaries
+    client_max_body_size 2M; # Restricts file uploads/payload sizes to 2 Megabytes maximum
+
+    # Primary Routing Block for the Multi-Role API
+    location /api/ {
+        # Apply the 10 requests per second rate limit rule here
+        limit_req_zone=api_limit_zone burst=5 nodelay;
+
+        # Forward incoming traffic directly to your backend Node.js process (Port 4000)
+        proxy_pass http://127.0.0.1:4000;
+        
+        # Preserve structural connection variables for our identity ledger
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        
+        # Ensure the backend accurately tracks the actual geolocation of the user IP
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Timeouts to drop frozen or unstable connections safely
+        proxy_connect_timeout 10s;
+        proxy_read_timeout    30s;
+        proxy_send_timeout    30s;
+    }
+
+    # Custom Error Handling to hide default software stack version banners
+    error_page 404 /404.json;
+    location = /404.json {
+        return 404 '{"error": "The requested financial API path does not exist."}';
+    }
+
+    error_page 500 502 503 504 /50x.json;
+    location = /50x.json {
+        return 500 '{"error": "An internal system routing or gateway anomaly occurred."}';
+    }
+}
