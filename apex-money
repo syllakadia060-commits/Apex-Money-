@@ -96,3 +96,8 @@ server {
         </body>
         </html>';
     }
+package.json     
+server.js          
+database.js          
+middleware.js          
+controllers.js
