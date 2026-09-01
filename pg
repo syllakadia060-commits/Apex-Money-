@@ -1,0 +1,56 @@
+ const { Pool } = require('pg');
+
+// Create connection string pool using environment variables
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL // e.g., postgres://user:password@host:5432/apex_db
+});
+
+/**
+ * EXPORTS AN ATOMIC DATABASE TRANSACTION LOOP
+ * If any line fails, PostgreSQL safely rolls back everything automatically.
+ */
+async function processSecureTransfer(idempotencyKey, senderId, receiverId, principalAmount) {
+    const client = await pool.connect();
+    
+    try {
+        // Start the strict database row-lock isolation segment
+        await client.query('BEGIN');
+
+        // 1. Check Idempotency Key
+        const idenCheck = await client.query('SELECT tx_id FROM ledger WHERE idempotency_key = $1', [idempotencyKey]);
+        if (idenCheck.rows.length > 0) {
+            throw new Error('Duplicate transaction tracker block triggered. Dropping request.');
+        }
+
+        const fee = principalAmount * 0.01; // 1% System rule
+        const totalDeduction = principalAmount + fee;
+
+        // 2. Lock sender row and check balance
+        const senderCheck = await client.query('SELECT balance_gnf FROM accounts WHERE id = $1 FOR UPDATE', [senderId]);
+        if (!senderCheck.rows[0] || parseFloat(senderCheck.rows[0].balance_gnf) < totalDeduction) {
+            throw new Error('Insufficient client funds available to execute transfer request.');
+        }
+
+        // 3. Update account entities using row calculations
+        await client.query('UPDATE accounts SET balance_gnf = balance_gnf - $1 WHERE id = $2', [totalDeduction, senderId]);
+        await client.query('UPDATE accounts SET balance_gnf = balance_gnf + $1 WHERE id = $2', [principalAmount, receiverId]);
+        await client.query('UPDATE accounts SET balance_gnf = balance_gnf + $1 WHERE id = \'OWNER_MAIN\'', [fee]);
+
+        // 4. Record into permanent, un-editable system ledger
+        await client.query(
+            'INSERT INTO ledger (idempotency_key, transaction_type, sender_id, receiver_id, principal_amount, fee_charged) VALUES ($1, \'P2P\', $2, $3, $4, $5)',
+            [idempotencyKey, senderId, receiverId, principalAmount, fee]
+        );
+
+        // Commit all changes perfectly to the physical hard drive
+        await client.query('COMMIT');
+        return { success: true };
+
+    } catch (error) {
+        // Clear all memory if a network blip hits mid-transaction
+        await client.query('ROLLBACK');
+        return { success: false, reason: error.message };
+    } finally {
+        client.release(); // Put connection back in the pool
+    }
+}
