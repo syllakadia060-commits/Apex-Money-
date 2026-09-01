@@ -86,3 +86,7 @@ jobs:
             # Simulates or reloads local Nginx proxy maps seamlessly without cutting connections
             sudo systemctl reload nginx
             echo "Deployment transaction successfully committed. Systems active."
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.1  # Add this line to handle backend server communication
